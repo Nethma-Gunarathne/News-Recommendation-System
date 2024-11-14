@@ -33,5 +33,6 @@
         <!-- Login Link -->
         <Text fx:id="loginLink" layoutX="37.0" layoutY="337.0" text="Already have an account? " />
         <Text layoutX="178.0" layoutY="337.0" text="Login" underline="true" onMouseClicked="#loginLink" />
+
     </children>
 </AnchorPane>
