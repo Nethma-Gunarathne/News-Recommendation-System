@@ -19,13 +19,13 @@
         <PasswordField fx:id="password" layoutX="36.0" layoutY="188.0" prefHeight="26.0" prefWidth="194.0" promptText="Password" />
         <PasswordField fx:id="confirmPassword" layoutX="36.0" layoutY="227.0" prefHeight="26.0" prefWidth="194.0" promptText="Confirm Password" />
 
-        <!-- News Categories Multi-Select ComboBox -->
+        <!-- News Categories Multi-Select Drop-Down -->
         <Label layoutX="302.0" layoutY="107.0" text="News Categories" />
-        <ComboBox fx:id="newsCategories" layoutX="301.0" layoutY="128.0" prefWidth="200.0" promptText="Select News Categories" />
+        <MenuButton fx:id="newsCategoriesMenu" layoutX="301.0" layoutY="128.0" prefWidth="200.0" text="Select News Categories" />
 
-        <!-- Content Type Preferences Multi-Select ComboBox -->
+        <!-- Content Type Preferences Multi-Select Drop-Down -->
         <Label layoutX="302.0" layoutY="169.0" text="Content Type Preferences" />
-        <ComboBox fx:id="contentTypePreferences" layoutX="301.0" layoutY="191.0" prefWidth="200.0" promptText="Select Content Type" />
+        <MenuButton fx:id="contentTypePreferencesMenu" layoutX="301.0" layoutY="191.0" prefWidth="200.0" text="Select Content Preferences" />
 
         <!-- Sign In Button -->
         <Button fx:id="signInButton" layoutX="107.0" layoutY="271.0" text="Sign in" onAction="#signInButton" />
