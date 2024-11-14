@@ -70,7 +70,7 @@ public class SignUp {
         // Check for empty fields first
         if (userName.getText().isEmpty() || email.getText().isEmpty() ||
                 password.getText().isEmpty() || confirmPassword.getText().isEmpty()) {
-            showAlert("Incomplete Fields", "Please fill in all the fields.");
+            showAlert("Incomplete Fields", "Please fill all the fields.");
             return false;
         }
 
