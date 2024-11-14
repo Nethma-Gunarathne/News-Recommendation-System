@@ -2,7 +2,6 @@ package org.example.newsrecommendationsystem;
 
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
-import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import javafx.fxml.FXMLLoader;
@@ -10,8 +9,6 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.regex.Pattern;
 
 public class SignUp {
@@ -29,10 +26,10 @@ public class SignUp {
     private PasswordField confirmPassword;
 
     @FXML
-    private ComboBox<CheckBox> newsCategories;
+    private MenuButton newsCategoriesMenu;
 
     @FXML
-    private ComboBox<CheckBox> contentTypePreferences;
+    private MenuButton contentTypePreferencesMenu;
 
     @FXML
     private Button signInButton;
@@ -44,22 +41,20 @@ public class SignUp {
 
     @FXML
     private void initialize() {
-        // Initialize CheckBox items for news categories
-        addCheckBoxItems(newsCategories, List.of(
+        // Initialize CheckMenuItem options for news categories
+        addCheckMenuItems(newsCategoriesMenu, new String[]{
                 "Technology", "Health", "Sports", "AI and Machine Learning", "Politics", "Business",
-                "Science", "Environment", "Entertainment", "World News"));
+                "Science", "Environment", "Entertainment", "World News"});
 
-        // Initialize CheckBox items for content type preferences
-        addCheckBoxItems(contentTypePreferences, List.of(
-                "Breaking News", "Opinion Pieces", "Analysis/Research", "Editorials", "Local News"));
+        // Initialize CheckMenuItem options for content type preferences
+        addCheckMenuItems(contentTypePreferencesMenu, new String[]{
+                "Breaking News", "Opinion Pieces", "Analysis/Research", "Editorials", "Local News"});
     }
 
-    private void addCheckBoxItems(ComboBox<CheckBox> comboBox, List<String> items) {
+    private void addCheckMenuItems(MenuButton menuButton, String[] items) {
         for (String item : items) {
-            CheckBox checkBox = new CheckBox(item);
-            CustomMenuItem menuItem = new CustomMenuItem(checkBox);
-            menuItem.setHideOnClick(false);  // Allow multiple selections without closing the drop-down
-            comboBox.getItems().add(checkBox);
+            CheckMenuItem checkMenuItem = new CheckMenuItem(item);
+            menuButton.getItems().add(checkMenuItem);
         }
     }
 
@@ -72,6 +67,13 @@ public class SignUp {
     }
 
     private boolean validateAllFields() {
+        // Check for empty fields first
+        if (userName.getText().isEmpty() || email.getText().isEmpty() ||
+                password.getText().isEmpty() || confirmPassword.getText().isEmpty()) {
+            showAlert("Incomplete Fields", "Please fill in all the fields.");
+            return false;
+        }
+
         if (!userName.getText().matches("[a-zA-Z]+")) {
             showAlert("Invalid Username", "Username should not contain numbers or special characters.");
             return false;
@@ -92,12 +94,12 @@ public class SignUp {
             return false;
         }
 
-        if (getSelectedCheckBoxCount(newsCategories) < 5) {
+        if (getSelectedCheckMenuItemCount(newsCategoriesMenu) < 5) {
             showAlert("Selection Error", "Please select at least 5 news categories.");
             return false;
         }
 
-        if (getSelectedCheckBoxCount(contentTypePreferences) < 3) {
+        if (getSelectedCheckMenuItemCount(contentTypePreferencesMenu) < 3) {
             showAlert("Selection Error", "Please select at least 3 content type preferences.");
             return false;
         }
@@ -105,11 +107,14 @@ public class SignUp {
         return true;
     }
 
-    private int getSelectedCheckBoxCount(ComboBox<CheckBox> comboBox) {
+    private int getSelectedCheckMenuItemCount(MenuButton menuButton) {
         int count = 0;
-        for (CheckBox checkBox : comboBox.getItems()) {
-            if (checkBox.isSelected()) {
-                count++;
+        for (MenuItem item : menuButton.getItems()) {
+            if (item instanceof CheckMenuItem) {
+                CheckMenuItem checkMenuItem = (CheckMenuItem) item;
+                if (checkMenuItem.isSelected()) {
+                    count++;
+                }
             }
         }
         return count;
