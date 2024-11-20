@@ -1,5 +1,7 @@
-package org.example.newsrecommendationsystem;
+package org.example.newsrecommendationsystem.user;
 
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoDatabase;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.text.Text;
@@ -7,8 +9,12 @@ import javafx.stage.Stage;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import org.bson.Document;
+import org.example.newsrecommendationsystem.Database;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.regex.Pattern;
 
 public class SignUp {
@@ -63,7 +69,13 @@ public class SignUp {
         if (!validateAllFields()) {
             return;
         }
-        goToHomePage();
+
+        // Add user credentials to the database
+        saveUserToDatabase();
+        clearFields();
+
+        // Navigate to the login page after successful registration
+        navigateToPage("Login.fxml", "Login");
     }
 
     private boolean validateAllFields() {
@@ -94,13 +106,13 @@ public class SignUp {
             return false;
         }
 
-        if (getSelectedCheckMenuItemCount(newsCategoriesMenu) < 5) {
-            showAlert("Selection Error", "Please select at least 5 news categories.");
+        if (getSelectedCheckMenuItemCount(newsCategoriesMenu) < 1) {
+            showAlert("Selection Error", "Please select at least 1 news category.");
             return false;
         }
 
-        if (getSelectedCheckMenuItemCount(contentTypePreferencesMenu) < 3) {
-            showAlert("Selection Error", "Please select at least 3 content type preferences.");
+        if (getSelectedCheckMenuItemCount(contentTypePreferencesMenu) < 1) {
+            showAlert("Selection Error", "Please select at least 1 content type preference.");
             return false;
         }
 
@@ -120,35 +132,86 @@ public class SignUp {
         return count;
     }
 
-    @FXML
-    private void loginLink() {
+    private void saveUserToDatabase() {
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("Login.fxml"));
-            Parent loginRoot = loader.load();
-            Scene loginScene = new Scene(loginRoot);
+            MongoDatabase database = Database.getDatabase();
+            MongoCollection<Document> usersCollection = database.getCollection("users");
 
-            Stage currentStage = (Stage) loginLink.getScene().getWindow();
-            currentStage.setScene(loginScene);
-            currentStage.setTitle("Login");
-        } catch (IOException e) {
+            if (isUserExists(usersCollection, userName.getText(), email.getText())) {
+                showAlert("Duplicate User", "A user with the same username or email already exists.");
+                return;
+            }
+
+            Document newUser = new Document("userName", userName.getText())
+                    .append("email", email.getText())
+                    .append("password", password.getText())
+                    .append("newsCategories", getSelectedCheckMenuItems(newsCategoriesMenu))
+                    .append("contentPreferences", getSelectedCheckMenuItems(contentTypePreferencesMenu));
+
+            usersCollection.insertOne(newUser);
+            System.out.println("User successfully added to the database.");
+        } catch (Exception e) {
             e.printStackTrace();
-            showAlert("Navigation Error", "Could not load the Login page.");
+            showAlert("Database Error", "Failed to save user to the database.");
         }
     }
 
-    private void goToHomePage() {
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("Home.fxml"));
-            Parent homeRoot = loader.load();
-            Scene homeScene = new Scene(homeRoot);
+    private List<String> getSelectedCheckMenuItems(MenuButton menuButton) {
+        List<String> selectedItems = new ArrayList<>();
+        for (MenuItem item : menuButton.getItems()) {
+            if (item instanceof CheckMenuItem && ((CheckMenuItem) item).isSelected()) {
+                selectedItems.add(item.getText());
+            }
+        }
+        return selectedItems;
+    }
 
-            Stage currentStage = (Stage) signInButton.getScene().getWindow();
-            currentStage.setScene(homeScene);
-            currentStage.setTitle("Home");
+    private void clearFields() {
+        userName.clear();
+        email.clear();
+        password.clear();
+        confirmPassword.clear();
+
+        for (MenuItem item : newsCategoriesMenu.getItems()) {
+            if (item instanceof CheckMenuItem) {
+                ((CheckMenuItem) item).setSelected(false);
+            }
+        }
+
+        for (MenuItem item : contentTypePreferencesMenu.getItems()) {
+            if (item instanceof CheckMenuItem) {
+                ((CheckMenuItem) item).setSelected(false);
+            }
+        }
+    }
+
+    @FXML
+    private void loginLink() {
+        navigateToPage("Login.fxml", "Login");
+    }
+
+    private void navigateToPage(String fxmlFile, String title) {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("Login.fxml"));
+            Parent root = loader.load();
+            Stage stage = (Stage) loginLink.getScene().getWindow();
+            stage.setScene(new Scene(root));
+            stage.setTitle(title);
         } catch (IOException e) {
             e.printStackTrace();
-            showAlert("Navigation Error", "Could not load the Home page.");
+            showAlert("Navigation Error", "Could not load the " + title + " page.");
         }
+    }
+
+    private boolean isUserExists(MongoCollection<Document> usersCollection, String username, String email) {
+        Document existingUser = usersCollection.find(
+                new Document("$or", List.of(
+                        new Document("userName", username),
+                        new Document("email", email)
+                ))
+        ).first();
+
+        return existingUser != null;
     }
 
     private void showAlert(String title, String message) {
