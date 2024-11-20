@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TreeTableColumn?>
+<?import javafx.scene.control.TreeTableView?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+
+<AnchorPane prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.example.newsrecommendationsystem.user.Home">
+    <children>
+        <!-- Sidebar with buttons -->
+        <VBox layoutX="10.0" layoutY="10.0" prefHeight="400.0" prefWidth="130.0" spacing="15.0">
+            <children>
+                <ImageView fx:id="logo" fitHeight="76.0" fitWidth="130.0">
+                    <image>
+                        <Image url="@logo.png" />
+                    </image>
+                </ImageView>
+
+                <Button fx:id="viewArticle" mnemonicParsing="false" onAction="#viewArticle" prefHeight="45.0" prefWidth="130.0" text="View Articles" />
+                <Button fx:id="recArticle" mnemonicParsing="false" onAction="#recArticle" prefHeight="45.0" prefWidth="130.0" text="Recommend Articles" />
+                <Button fx:id="exploreTopic" mnemonicParsing="false" onAction="#exploreTopic" prefHeight="45.0" prefWidth="130.0" text="Explore Topics" />
+                <Button fx:id="logout" mnemonicParsing="false" onAction="#logout" prefHeight="45.0" prefWidth="130.0" text="Logout" />
+            </children>
+        </VBox>
+
+        <!-- Profile Image Icon -->
+        <ImageView fx:id="profile" fitHeight="30.0" fitWidth="30.0" layoutX="560.0" layoutY="10.0" onMouseClicked="#handleEditProfile">
+            <image>
+                <Image url="@edit_profile_icon.png" />
+            </image>
+        </ImageView>
+
+        <!-- StackPane to switch between different content views -->
+        <StackPane fx:id="contentStack" layoutX="150.0" layoutY="10.0" prefHeight="380.0" prefWidth="430.0">
+            <!-- Pane for View Articles -->
+            <AnchorPane fx:id="viewArticlesPane" visible="false">
+                <Label layoutX="20" layoutY="20" text="View Articles Content Here" />
+            <TreeTableView prefHeight="380.0" prefWidth="430.0">
+              <columns>
+                <TreeTableColumn prefWidth="75.0" text="C1" />
+                <TreeTableColumn prefWidth="75.0" text="C2" />
+              </columns>
+            </TreeTableView>
+            </AnchorPane>
+
+            <!-- Pane for Recommend Articles -->
+            <AnchorPane fx:id="recArticlesPane" visible="false">
+                <Label layoutX="20" layoutY="20" text="Recommend Articles Content Here" />
+            </AnchorPane>
+
+            <!-- Pane for Explore Topics -->
+            <AnchorPane fx:id="exploreTopicsPane" visible="false">
+                <Label layoutX="20" layoutY="20" text="Explore Topics Content Here" />
+            </AnchorPane>
+        </StackPane>
+    </children>
+</AnchorPane>
