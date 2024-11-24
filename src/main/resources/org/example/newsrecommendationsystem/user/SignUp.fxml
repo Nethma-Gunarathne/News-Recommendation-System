@@ -33,11 +33,11 @@
         <MenuButton fx:id="contentTypePreferencesMenu" layoutX="301.0" layoutY="191.0" prefWidth="200.0" text="Select Content Preferences" />
 
         <!-- Sign In Button -->
-        <Button fx:id="signInButton" layoutX="107.0" layoutY="271.0" onAction="#signInButton" text="Sign Up" />
+        <Button fx:id="signInButton" layoutX="107.0" layoutY="271.0" onAction="#signInButton" style="-fx-cursor: hand;" text="Sign Up" />
 
         <!-- Login Link -->
         <Text fx:id="loginLink" layoutX="37.0" layoutY="337.0" text="Already have an account? " />
-        <Text layoutX="191.0" layoutY="337.0" onMouseClicked="#loginLink" text="Login" underline="true" />
+        <Text layoutX="191.0" layoutY="337.0" onMouseClicked="#loginLink" text="Login" style="-fx-cursor: hand;" underline="true" />
 
     </children>
 </AnchorPane>
