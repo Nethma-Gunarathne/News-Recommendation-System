@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.scene.control.Button?>
-<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ButtonBar?>
 <?import javafx.scene.control.MenuButton?>
 <?import javafx.scene.control.MenuItem?>
 <?import javafx.scene.control.TextArea?>
 <?import javafx.scene.image.Image?>
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.AnchorPane?>
-<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Pane?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 
@@ -39,42 +39,24 @@
 
         <!-- StackPane to switch between different content views -->
         <StackPane fx:id="contentStack" layoutX="150.0" layoutY="10.0" prefHeight="490.0" prefWidth="600.0">
-            <!-- Pane for View Articles -->
-            <AnchorPane fx:id="viewArticlesPane" prefHeight="380.0" prefWidth="648.0" visible="false">
-            <TextArea fx:id="texts" layoutX="130.0" layoutY="60.0" prefHeight="318.0" prefWidth="471.0" />
-            <VBox fx:id="headlines" layoutX="2.0" layoutY="60.0" prefHeight="318.0" prefWidth="125.0" style="-fx-border-color: black;" />
+            <Pane fx:id="viewArticlesPane" prefHeight="200.0" prefWidth="200.0">
+                <children>
+                    <VBox fx:id="headlines" layoutX="2.0" layoutY="60.0" prefHeight="318.0" prefWidth="125.0" style="-fx-border-color: grey;" />
+                    <TextArea fx:id="texts" layoutX="130.0" layoutY="60.0" prefHeight="318.0" prefWidth="471.0" />
+                    <ButtonBar layoutX="7.0" layoutY="400.0" prefHeight="40.0" prefWidth="590.0">
+                        <buttons>
+                            <MenuButton fx:id="dropdownButton" layoutX="7.0" text="Options">
 
-                <!-- Buttons Section -->
-                <HBox fx:id="buttons" layoutX="7.0" layoutY="400.0" prefHeight="34.0" prefWidth="585.0" spacing="10.0">
-                    <children>
-                        <MenuButton fx:id="dropdownButton" text="Options">
-                            <items>
-                                <MenuItem text="World"/>
-                                <MenuItem text="Entertainment"/>
-                                <MenuItem text="Science"/>
-                                <MenuItem text="Health"/>
-                                <MenuItem text="Business" />
-                                <MenuItem text="Sports"/>
-                                <MenuItem text="Politics"/>
-                                <MenuItem text="Tech"/>
-                            </items>
-                        </MenuButton>
-                        <Button fx:id="likeButton" mnemonicParsing="false" text="Like" />
-                        <Button fx:id="prevButton" mnemonicParsing="false" text="Previous" />
-                        <Button fx:id="nextButton" mnemonicParsing="false" prefHeight="20.0" prefWidth="100.0" text="Next" />
-                    </children>
-                </HBox>
-            </AnchorPane>
-
-            <!-- Pane for Recommend Articles -->
-            <AnchorPane fx:id="recArticlesPane" visible="false">
-                <Label layoutX="20.0" layoutY="20.0" text="Recommend Articles Content Here" />
-            </AnchorPane>
-
-            <!-- Pane for Explore Topics -->
-            <AnchorPane fx:id="exploreTopicsPane" visible="false">
-                <Label layoutX="20.0" layoutY="20.0" text="Explore Topics Content Here" />
-            </AnchorPane>
+                            </MenuButton>
+                            <Button fx:id="likeButton" mnemonicParsing="false" text="Like" />
+                            <Button fx:id="unlikeButton" mnemonicParsing="false" text="Unlike" />
+                            <Button fx:id="nextButton" mnemonicParsing="false" text="Next" />
+                        </buttons>
+                    </ButtonBar>
+                </children>
+            </Pane>
+            <Pane fx:id="recArticlesPane" prefHeight="200.0" prefWidth="200.0" />
+            <Pane fx:id="exploreTopicsPane" prefHeight="200.0" prefWidth="200.0" />
         </StackPane>
     </children>
 </AnchorPane>

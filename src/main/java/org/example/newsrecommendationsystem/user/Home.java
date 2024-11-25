@@ -1,13 +1,13 @@
 package org.example.newsrecommendationsystem.user;
 
 import javafx.fxml.FXML;
-import javafx.scene.control.Alert;
+import javafx.scene.control.*;
 import javafx.scene.control.Alert.AlertType;
-import javafx.scene.control.Button;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
-import javafx.scene.control.ButtonType;
+import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -15,6 +15,10 @@ import javafx.scene.Scene;
 import java.io.IOException;
 
 public class Home {
+
+    public MenuButton dropdownButton;
+    @FXML
+    private VBox sidebar;
 
     @FXML
     private Button viewArticle;
@@ -35,31 +39,33 @@ public class Home {
     private StackPane contentStack;
 
     @FXML
-    private AnchorPane viewArticlesPane;
+    private Pane viewArticlesPane;
 
     @FXML
-    private AnchorPane recArticlesPane;
+    private Pane recArticlesPane;
 
     @FXML
-    private AnchorPane exploreTopicsPane;
+    private Pane exploreTopicsPane;
 
     @FXML
-    private void initialize() {
-        showPane(viewArticlesPane); // Show View Articles pane by default
-    }
+    private VBox headlines;
 
     @FXML
-    private void viewArticle() {
+    private TextArea texts;
+
+    // Action Handlers
+    @FXML
+    public void viewArticle() {
         showPane(viewArticlesPane);
     }
 
     @FXML
-    private void recArticle() {
+    public void recArticle() {
         showPane(recArticlesPane);
     }
 
     @FXML
-    private void exploreTopic() {
+    public void exploreTopic() {
         showPane(exploreTopicsPane);
     }
 
@@ -82,11 +88,41 @@ public class Home {
         });
     }
 
-
     @FXML
     private void handleEditProfile() {
         // Logic for profile editing
         System.out.println("Edit profile clicked.");
+    }
+
+    private void showPane(Pane paneToShow) {
+        // Hide all panes first
+        viewArticlesPane.setVisible(false);
+        recArticlesPane.setVisible(false);
+        exploreTopicsPane.setVisible(false);
+
+        // Show the specified pane
+        paneToShow.setVisible(true);
+    }
+
+    @FXML
+    public void handleLike() {
+        System.out.println("Article liked");
+    }
+
+    @FXML
+    public void handleUnlike() {
+        System.out.println("Article unliked");
+    }
+
+    @FXML
+    public void handleNext() {
+        System.out.println("Next article displayed");
+    }
+
+    @FXML
+    public void handleDropdownSelection() {
+        // Handle menu item selections if required
+        System.out.println("Dropdown option selected");
     }
 
     private void goToLoginPage() {
@@ -104,15 +140,6 @@ public class Home {
             e.printStackTrace();
             showAlert("Error", "Could not load the Login page.");
         }
-    }
-
-    private void showPane(AnchorPane paneToShow) {
-        // Hide all other panes and show the selected one
-        viewArticlesPane.setVisible(false);
-        recArticlesPane.setVisible(false);
-        exploreTopicsPane.setVisible(false);
-
-        paneToShow.setVisible(true); // Show only the selected pane
     }
 
     private void showAlert(String title, String message) {
