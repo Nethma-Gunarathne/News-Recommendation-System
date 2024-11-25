@@ -1,5 +1,7 @@
 package org.example.newsrecommendationsystem.user;
 
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoDatabase;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.control.Alert.AlertType;
@@ -8,11 +10,18 @@ import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import org.bson.Document;
+
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 public class Home {
 
@@ -52,6 +61,149 @@ public class Home {
 
     @FXML
     private TextArea texts;
+
+
+    @FXML
+    private void initialize() {
+        // Initialize the database connection
+        org.example.newsrecommendationsystem.Database.initDatabase();
+
+        // Fetch categories from the database
+        Set<String> categories = fetchCategoriesFromDatabase();
+
+        // Populate dropdown menu with categories
+        populateDropdown(categories);
+    }
+
+    private Set<String> fetchCategoriesFromDatabase() {
+        Set<String> categories = new HashSet<>();
+        try {
+            // Get the database instance
+            MongoDatabase database = org.example.newsrecommendationsystem.Database.getDatabase();
+
+            // Access the "articles" collection
+            MongoCollection<Document> articlesCollection = database.getCollection("articles");
+
+            // Fetch categories
+            for (Document document : articlesCollection.find()) {
+                // Assuming each document has a "category" field
+                String category = document.getString("Category");
+                if (category != null) {
+                    categories.add(category);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException("Failed to fetch categories from the database");
+        }
+        return categories;
+    }
+
+    private void populateDropdown(Set<String> categories) {
+        try {
+            dropdownButton.getItems().clear(); // Clear existing items, if any
+
+            for (String category : categories) {
+                MenuItem menuItem = new MenuItem(category);
+
+                // Add an action handler for the menu item
+                menuItem.setOnAction(event -> handleCategorySelection(category));
+
+                // Add the menu item to the dropdown button
+                dropdownButton.getItems().add(menuItem);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException("Failed to populate dropdown with categories");
+        }
+    }
+
+    private void handleCategorySelection(String category) {
+        System.out.println("Selected category: " + category);
+
+        // Fetch headlines for the selected category
+        List<String> headlinesList = fetchHeadlinesByCategory(category);
+
+        // Display headlines in the VBox
+        displayHeadlines(headlinesList);
+    }
+
+
+    private List<String> fetchHeadlinesByCategory(String category) {
+        List<String> headlines = new ArrayList<>();
+        try {
+            // Get the database instance
+            MongoDatabase database = org.example.newsrecommendationsystem.Database.getDatabase();
+
+            // Access the "articles" collection
+            MongoCollection<Document> articlesCollection = database.getCollection("articles");
+
+            // Query the collection for the selected category
+            for (Document document : articlesCollection.find(new Document("Category", category))) {
+                // Assuming each document has an "Article Number" field (the headline)
+                String headline = document.getString("Article Number");
+                if (headline != null) {
+                    headlines.add(headline);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException("Failed to fetch headlines from the database");
+        }
+        return headlines;
+    }
+
+    private void displayHeadlines(List<String> headlinesList) {
+        headlines.getChildren().clear(); // Clear existing headlines
+
+        for (String headline : headlinesList) {
+            // Create a Text node for each headline
+            Text headlineText = new Text(headline);
+            headlineText.setStyle("-fx-font-size: 14px; -fx-padding: 5px;");
+
+            // Set the headline as clickable
+            headlineText.setOnMouseClicked(event -> handleHeadlineClick(headline));
+
+            // Add the Text node to the VBox
+            headlines.getChildren().add(headlineText);
+        }
+    }
+
+    // Fetch the article text for the selected headline
+    private String fetchArticleTextByHeadline(String headline) {
+        String articleText = "";
+        try {
+            // Get the database instance
+            MongoDatabase database = org.example.newsrecommendationsystem.Database.getDatabase();
+
+            // Access the "articles" collection
+            MongoCollection<Document> articlesCollection = database.getCollection("articles");
+
+            // Query the collection for the selected headline
+            Document articleDocument = articlesCollection.find(new Document("Article Number", headline)).first();
+
+            if (articleDocument != null) {
+                // Assuming the article text is stored in the "Text" field
+                articleText = articleDocument.getString("Text");
+
+                // If needed, insert line breaks where appropriate
+                // Example: Replace multiple spaces with a newline (if the text is too compact in the database)
+                articleText = articleText.replaceAll("\\.\\s", ".\n");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException("Failed to fetch article text from the database");
+        }
+        return articleText;
+    }
+
+    private void handleHeadlineClick(String headline) {
+        // Fetch the full text for the clicked headline
+        String articleText = fetchArticleTextByHeadline(headline);
+
+        // Display the text in the TextArea, ensuring that line breaks are preserved
+        texts.setText(articleText);
+    }
 
     // Action Handlers
     @FXML
@@ -150,4 +302,6 @@ public class Home {
         alert.setContentText(message);
         alert.showAndWait();
     }
+
+
 }
