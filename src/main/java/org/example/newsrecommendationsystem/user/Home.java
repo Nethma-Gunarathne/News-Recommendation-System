@@ -62,7 +62,6 @@ public class Home {
     @FXML
     private TextArea texts;
 
-
     @FXML
     private void initialize() {
         // Initialize the database connection
@@ -124,6 +123,13 @@ public class Home {
         // Fetch headlines for the selected category
         List<String> headlinesList = fetchHeadlinesByCategory(category);
 
+        if (headlinesList.isEmpty()) {
+            System.out.println("No headlines found for category: " + category);
+        }
+
+        // Clear TextArea to reset previous article details
+        texts.clear();
+
         // Display headlines in the VBox
         displayHeadlines(headlinesList);
     }
@@ -146,12 +152,17 @@ public class Home {
                     headlines.add(headline);
                 }
             }
+
+            // Debug log to confirm fetched headlines
+            System.out.println("Fetched headlines for category " + category + ": " + headlines);
+
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException("Failed to fetch headlines from the database");
         }
         return headlines;
     }
+
 
     private void displayHeadlines(List<String> headlinesList) {
         headlines.getChildren().clear(); // Clear existing headlines
@@ -167,6 +178,9 @@ public class Home {
             // Add the Text node to the VBox
             headlines.getChildren().add(headlineText);
         }
+
+        // Debug log to confirm UI update
+        System.out.println("Displayed " + headlinesList.size() + " headlines.");
     }
 
     // Fetch the article text for the selected headline
@@ -204,6 +218,8 @@ public class Home {
         // Display the text in the TextArea, ensuring that line breaks are preserved
         texts.setText(articleText);
     }
+
+
 
     // Action Handlers
     @FXML
