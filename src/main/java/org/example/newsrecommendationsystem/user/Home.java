@@ -1,323 +1,170 @@
 package org.example.newsrecommendationsystem.user;
 
-import com.mongodb.client.MongoCollection;
-import com.mongodb.client.MongoDatabase;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.image.ImageView;
-import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
-import javafx.scene.text.Text;
 import javafx.stage.Stage;
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Parent;
-import javafx.scene.Scene;
-import org.bson.Document;
+import org.example.newsrecommendationsystem.article.Article;
+import org.example.newsrecommendationsystem.article.viewArticle;
+import org.example.newsrecommendationsystem.article.recommendedArticle;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 
 public class Home {
 
-    public MenuButton dropdownButton;
+    public ImageView profile;
+    public javafx.scene.control.ButtonBar ButtonBar1;
+    public MenuButton dropdownButton1;
+    public VBox headlinesContainer1;
+    public TextArea texts1;
     @FXML
-    private VBox sidebar;
-
+    private MenuButton dropdownButton;
     @FXML
-    private Button viewArticle;
-
+    private Button dislikeButton, likeButton, viewArticle, recommendedArticle, Exit;
     @FXML
-    private Button recArticle;
-
-    @FXML
-    private Button exploreTopic;
-
-    @FXML
-    private Button logout;
-
-    @FXML
-    private ImageView profile;
-
-    @FXML
-    private StackPane contentStack;
-
-    @FXML
-    private Pane viewArticlesPane;
-
-    @FXML
-    private Pane recArticlesPane;
-
-    @FXML
-    private Pane exploreTopicsPane;
-
-    @FXML
-    private VBox headlines;
-
+    private VBox headlinesContainer; // Updated name for clarity
     @FXML
     private TextArea texts;
+    @FXML
+    private ButtonBar ButtonBar;
+    @FXML
+    private StackPane contentStack;
+    @FXML
+    private Pane mainPane, viewArticlePane, recommendedArticlePane;
+
+    private viewArticle viewArticleClass;
+
+
 
     @FXML
     private void initialize() {
-        // Initialize the database connection
-        org.example.newsrecommendationsystem.Database.initDatabase();
+        mainPane.setVisible(true);
+        viewArticlePane.setVisible(false);
+        recommendedArticlePane.setVisible(false);
 
-        // Fetch categories from the database
-        Set<String> categories = fetchCategoriesFromDatabase();
-
-        // Populate dropdown menu with categories
-        populateDropdown(categories);
+        String userId = "current_user_id"; // Replace with actual logic to retrieve userId
+        viewArticleClass = new viewArticle(viewArticlePane, dropdownButton, headlinesContainer, texts, userId);
+        viewArticleClass.loadCategories();
     }
 
-    private Set<String> fetchCategoriesFromDatabase() {
-        Set<String> categories = new HashSet<>();
-        try {
-            // Get the database instance
-            MongoDatabase database = org.example.newsrecommendationsystem.Database.getDatabase();
+    @FXML
+    private void viewArticle(ActionEvent event) {
+        // Switch to the View Articles pane
+        mainPane.setVisible(false);
+        viewArticlePane.setVisible(true);
+        recommendedArticlePane.setVisible(false);
 
-            // Access the "articles" collection
-            MongoCollection<Document> articlesCollection = database.getCollection("articles");
-
-            // Fetch categories
-            for (Document document : articlesCollection.find()) {
-                // Assuming each document has a "category" field
-                String category = document.getString("Category");
-                if (category != null) {
-                    categories.add(category);
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw new RuntimeException("Failed to fetch categories from the database");
-        }
-        return categories;
-    }
-
-    private void populateDropdown(Set<String> categories) {
-        try {
-            dropdownButton.getItems().clear(); // Clear existing items, if any
-
-            for (String category : categories) {
-                MenuItem menuItem = new MenuItem(category);
-
-                // Add an action handler for the menu item
-                menuItem.setOnAction(event -> handleCategorySelection(category));
-
-                // Add the menu item to the dropdown button
-                dropdownButton.getItems().add(menuItem);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw new RuntimeException("Failed to populate dropdown with categories");
-        }
-    }
-
-    private void handleCategorySelection(String category) {
-        System.out.println("Selected category: " + category);
-
-        // Fetch headlines for the selected category
-        List<String> headlinesList = fetchHeadlinesByCategory(category);
-
-        if (headlinesList.isEmpty()) {
-            System.out.println("No headlines found for category: " + category);
-        }
-
-        // Clear TextArea to reset previous article details
+        // Clear previous content
+        headlinesContainer.getChildren().clear();
         texts.clear();
 
-        // Display headlines in the VBox
-        displayHeadlines(headlinesList);
+        // Reload categories and articles into the view
+        viewArticleClass.loadCategories();
+    }
+
+    @FXML
+    private void recommendedArticle(ActionEvent event) {
+        // Switch to the Recommend Articles pane
+        mainPane.setVisible(false);
+        viewArticlePane.setVisible(false);
+        recommendedArticlePane.setVisible(true);
+
+        // Clear previous content
+        headlinesContainer1.getChildren().clear();
+        texts1.clear();
+
+        // Get the userId from the session or other means
+        String userId = String.valueOf(Session.getCurrentUser().getUserId());
+
+        // Instantiate recommendedArticle with required parameters
+        recommendedArticle recommendedArticleClass = new recommendedArticle(recommendedArticlePane, dropdownButton1, headlinesContainer1, texts1, userId);
+
+        // Load recommended articles into the view
+        // recommendedArticleClass.loadRecommendedArticles();
     }
 
 
-    private List<String> fetchHeadlinesByCategory(String category) {
-        List<String> headlines = new ArrayList<>();
+
+
+    // Navigate to Profile page
+    @FXML
+    private void navigateToProfile() {
+        System.out.println("Profile image clicked! Navigating...");
         try {
-            // Get the database instance
-            MongoDatabase database = org.example.newsrecommendationsystem.Database.getDatabase();
-
-            // Access the "articles" collection
-            MongoCollection<Document> articlesCollection = database.getCollection("articles");
-
-            // Query the collection for the selected category
-            for (Document document : articlesCollection.find(new Document("Category", category))) {
-                // Assuming each document has an "Article Number" field (the headline)
-                String headline = document.getString("Article Number");
-                if (headline != null) {
-                    headlines.add(headline);
-                }
-            }
-
-            // Debug log to confirm fetched headlines
-            System.out.println("Fetched headlines for category " + category + ": " + headlines);
-
-        } catch (Exception e) {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/org/example/newsrecommendationsystem/Profile.fxml"));
+            Scene scene = new Scene(loader.load());
+            Stage stage = (Stage) profile.getScene().getWindow(); // Get the current window
+            stage.setScene(scene); // Set the new scene
+        } catch (IOException e) {
             e.printStackTrace();
-            throw new RuntimeException("Failed to fetch headlines from the database");
         }
-        return headlines;
-    }
-
-
-    private void displayHeadlines(List<String> headlinesList) {
-        headlines.getChildren().clear(); // Clear existing headlines
-
-        for (String headline : headlinesList) {
-            // Create a Text node for each headline
-            Text headlineText = new Text(headline);
-            headlineText.setStyle("-fx-font-size: 14px; -fx-padding: 5px;");
-
-            // Set the headline as clickable
-            headlineText.setOnMouseClicked(event -> handleHeadlineClick(headline));
-
-            // Add the Text node to the VBox
-            headlines.getChildren().add(headlineText);
-        }
-
-        // Debug log to confirm UI update
-        System.out.println("Displayed " + headlinesList.size() + " headlines.");
-    }
-
-    // Fetch the article text for the selected headline
-    private String fetchArticleTextByHeadline(String headline) {
-        String articleText = "";
-        try {
-            // Get the database instance
-            MongoDatabase database = org.example.newsrecommendationsystem.Database.getDatabase();
-
-            // Access the "articles" collection
-            MongoCollection<Document> articlesCollection = database.getCollection("articles");
-
-            // Query the collection for the selected headline
-            Document articleDocument = articlesCollection.find(new Document("Article Number", headline)).first();
-
-            if (articleDocument != null) {
-                // Assuming the article text is stored in the "Text" field
-                articleText = articleDocument.getString("Text");
-
-                // If needed, insert line breaks where appropriate
-                // Example: Replace multiple spaces with a newline (if the text is too compact in the database)
-                articleText = articleText.replaceAll("\\.\\s", ".\n");
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw new RuntimeException("Failed to fetch article text from the database");
-        }
-        return articleText;
-    }
-
-    private void handleHeadlineClick(String headline) {
-        // Fetch the full text for the clicked headline
-        String articleText = fetchArticleTextByHeadline(headline);
-
-        // Display the text in the TextArea, ensuring that line breaks are preserved
-        texts.setText(articleText);
-    }
-
-
-
-    // Action Handlers
-    @FXML
-    public void viewArticle() {
-        showPane(viewArticlesPane);
     }
 
     @FXML
-    public void recArticle() {
-        showPane(recArticlesPane);
-    }
+    private void exit(ActionEvent event) {
+        // Confirm exit with a popup dialog
+        Alert alert = new Alert(AlertType.CONFIRMATION);
+        alert.setTitle("Confirm Exit");
+        alert.setHeaderText("Are you sure you want to exit?");
+        alert.setContentText("Press Yes to exit or No to stay.");
 
-    @FXML
-    public void exploreTopic() {
-        showPane(exploreTopicsPane);
-    }
-
-    @FXML
-    private void logout() {
-        // Step 1: Show confirmation dialog for logout
-        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-        alert.setTitle("Logout Confirmation");
-        alert.setHeaderText("Are you sure you want to logout?");
-        alert.setContentText(""); // Empty content text for a cleaner view
-
-        // Step 2: Add OK and CANCEL buttons for confirmation
-        alert.getButtonTypes().setAll(ButtonType.OK, ButtonType.CANCEL);
-
-        // Step 3: Wait for user response and handle the actions accordingly
         alert.showAndWait().ifPresent(response -> {
-            if (response == ButtonType.OK) {  // Use ButtonType.OK instead of ButtonType.YES
-                goToLoginPage();
+            if (response == ButtonType.OK) {
+                System.out.println("Exiting the program...");
+                Stage stage = (Stage) Exit.getScene().getWindow();
+                stage.close(); // Close the application
             }
         });
     }
 
-    @FXML
-    private void handleEditProfile() {
-        // Logic for profile editing
-        System.out.println("Edit profile clicked.");
-    }
-
-    private void showPane(Pane paneToShow) {
-        // Hide all panes first
-        viewArticlesPane.setVisible(false);
-        recArticlesPane.setVisible(false);
-        exploreTopicsPane.setVisible(false);
-
-        // Show the specified pane
-        paneToShow.setVisible(true);
-    }
 
     @FXML
-    public void handleLike() {
-        System.out.println("Article liked");
-    }
+    private void like(ActionEvent actionEvent) {
+        // Check if an article is selected
+        if (viewArticleClass.getSelectedArticle() != null) {
+            // Proceed with liking the article
+            String category = viewArticleClass.getSelectedArticle().getCategory();
+            viewArticleClass.updateCategoryPreference(category, 1);  // Add a point to the selected category
+            System.out.println("Liked article in category: " + category);
 
-    @FXML
-    public void handleUnlike() {
-        System.out.println("Article unliked");
-    }
+            // Disable like and dislike buttons after interaction
 
-    @FXML
-    public void handleNext() {
-        System.out.println("Next article displayed");
-    }
-
-    @FXML
-    public void handleDropdownSelection() {
-        // Handle menu item selections if required
-        System.out.println("Dropdown option selected");
-    }
-
-    private void goToLoginPage() {
-        try {
-            // Load the Login page FXML
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("Login.fxml"));
-            Parent loginRoot = loader.load();
-            Scene loginScene = new Scene(loginRoot);
-
-            // Get the current stage and set the login scene
-            Stage currentStage = (Stage) logout.getScene().getWindow();
-            currentStage.setScene(loginScene);
-            currentStage.setTitle("Login");
-        } catch (IOException e) {
-            e.printStackTrace();
-            showAlert("Error", "Could not load the Login page.");
+        } else {
+            // Show alert if no article is selected
+            Alert alert = new Alert(AlertType.INFORMATION);
+            alert.setTitle("No Article Selected");
+            alert.setHeaderText("Please select an article before liking.");
+            alert.showAndWait();
         }
     }
 
-    private void showAlert(String title, String message) {
-        // Display a simple error alert
-        Alert alert = new Alert(AlertType.ERROR);
-        alert.setTitle(title);
-        alert.setHeaderText(null);
-        alert.setContentText(message);
-        alert.showAndWait();
+    @FXML
+    private void dislike(ActionEvent actionEvent) {
+        // Check if an article is selected
+        if (viewArticleClass.getSelectedArticle() != null) {
+            // Proceed with disliking the article
+            String category = viewArticleClass.getSelectedArticle().getCategory();
+            viewArticleClass.updateCategoryPreference(category, -1);  // Deduct a point from the selected category
+            System.out.println("Disliked article in category: " + category);
+
+            // Disable like and dislike buttons after interaction
+        } else {
+            // Show alert if no article is selected
+            Alert alert = new Alert(AlertType.INFORMATION);
+            alert.setTitle("No Article Selected");
+            alert.setHeaderText("Please select an article before disliking.");
+            alert.showAndWait();
+        }
     }
+
+
 
 
 }
