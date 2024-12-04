@@ -1,148 +1,96 @@
 package org.example.newsrecommendationsystem.user;
 
-import com.mongodb.client.MongoDatabase;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.scene.control.Alert;
-import javafx.scene.control.Button;
-import javafx.scene.control.TextField;
-import javafx.scene.text.Text;
-import javafx.stage.Stage;
 import javafx.fxml.FXMLLoader;
-import javafx.scene.Parent;
 import javafx.scene.Scene;
-import org.example.newsrecommendationsystem.Database;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.Button;
+import javafx.scene.control.PasswordField;
+import javafx.scene.control.TextField;
+import javafx.stage.Stage;
+import org.example.newsrecommendationsystem.AbstractLogin;
+import org.example.newsrecommendationsystem.database.dbManager;
 
 import java.io.IOException;
 
-public class Login {
+public class Login extends AbstractLogin {
 
-    public Button SigninButton;
     @FXML
     private TextField userName;
 
     @FXML
-    private TextField password;
+    private PasswordField password;
 
     @FXML
     private Button loginButton;
 
     @FXML
-    private Text signInLink;
+    private Button signUpLink;
 
     @FXML
-    private void initialize() {
-        // Initialize if necessary
-    }
+    private Button adminLogin;
 
-    // Method to handle the login button action
+    private dbManager databaseManager = new dbManager();
+
     @FXML
-    private void loginButton() {
-        String user = userName.getText();
+    private void loginButton(ActionEvent event) {
+        String username = userName.getText();
         String pass = password.getText();
 
-        // First check if both fields are filled
-        if (user.isEmpty() || pass.isEmpty()) {
-            showAlert("Incomplete Fields", "Please enter both username and password.");
+        // Validate fields are not empty
+        if (username.isEmpty() || pass.isEmpty()) {
+            showAlert("Validation Error", "Both fields must be filled in.", Alert.AlertType.ERROR);
             return;
         }
 
-        // Check if the username contains only alphabetic characters
-        if (!user.matches("[a-zA-Z]+")) {
-            showAlert("Invalid Username", "Username should not contain numbers or special characters. Please check your username.");
-            return;
-        }
+        // Check if the user exists using the validateUser method
+        User user = databaseManager.validateUser(username, pass);
 
-        // Verify credentials from the database
-        if (verifyCredentials(user, pass)) {
-            // If verification is successful, proceed to the Home page
-            goToHomePage();
+        if (user != null) {
+            // Verify password
+            if (verifyPassword(pass, user.getPassword())) {
+                // Set the current user in the session
+                Session.setCurrentUser(user);
+                System.out.println("Login successful: " + user.getUserName());
+                // Navigate to Home page
+                navigateToPage("Home.fxml", "Home");
+            } else {
+                showAlert("Login Failed", "Incorrect password.", Alert.AlertType.ERROR);
+            }
         } else {
-            // If verification fails, show an alert
-            showAlert("Login Failed", "Invalid username or password. Please try again.");
+            showAlert("Login Failed", "User not found.", Alert.AlertType.ERROR);
         }
     }
 
-    // Method to navigate to the Sign-Up page when clicking signInLink
-    @FXML
-    public void SignInLink(ActionEvent actionEvent) {
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("SignUp.fxml"));
-            Parent signUpRoot = loader.load();
-            Scene signUpScene = new Scene(signUpRoot);
-
-            // Get current stage and set new scene
-            Stage currentStage = (Stage) signInLink.getScene().getWindow();
-            currentStage.setScene(signUpScene);
-            currentStage.setTitle("Sign Up");
-        } catch (IOException e) {
-            e.printStackTrace();
-            showAlert("Navigation Error", "Could not load the Sign-Up page.");
-        }
-    }
-
-    // Helper method to show alert messages
-    private void showAlert(String title, String message) {
-        Alert alert = new Alert(Alert.AlertType.ERROR);
+    private void showAlert(String title, String message, AlertType alertType) {
+        Alert alert = new Alert(alertType);
         alert.setTitle(title);
         alert.setHeaderText(null);
         alert.setContentText(message);
         alert.showAndWait();
     }
 
-    // Method to navigate to the Home page
-    private void goToHomePage() {
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("Home.fxml"));
-            Parent homeRoot = loader.load();
-            Scene homeScene = new Scene(homeRoot);
-
-            // Get current stage and set new scene
-            Stage currentStage = (Stage) loginButton.getScene().getWindow();
-            currentStage.setScene(homeScene);
-            currentStage.setTitle("Home");
-        } catch (IOException e) {
-            e.printStackTrace();
-            showAlert("Navigation Error", "Could not load the Home page.");
-        }
+    @FXML
+    private void signUpLink(ActionEvent event) {
+        navigateToPage("SignUp.fxml", "Sign Up");
     }
 
-    public void SignUpLink(ActionEvent actionEvent) {
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/org/example/newsrecommendationsystem/user/SignUp.fxml"));
-            Parent signUpRoot = loader.load();
-            Scene signUpScene = new Scene(signUpRoot);
-
-            // Get current stage and set new scene
-            Stage currentStage = (Stage) SigninButton.getScene().getWindow();
-            currentStage.setScene(signUpScene);
-            currentStage.setTitle("Sign Up");
-        } catch (IOException e) {
-            e.printStackTrace();
-            showAlert("Navigation Error", "Could not load the Sign-Up page.");
-        }
+    @FXML
+    private void adminLogin(ActionEvent event) {
+        navigateToPage("adminPage.fxml", "Admin Login");
     }
 
-
-    // Method to verify credentials from the database
-    private boolean verifyCredentials(String username, String password) {
+    private void navigateToPage(String fxmlFile, String pageTitle) {
         try {
-            // Get the database instance
-            MongoDatabase database = Database.getDatabase();
-
-            // Access the "users" collection (replace with your actual collection name)
-            var collection = database.getCollection("users");
-
-            // Query the database for a document matching the username and password
-            var query = new org.bson.Document("userName", username)
-                    .append("password", password);
-
-            var result = collection.find(query).first();
-            return result != null; // If a matching document is found, credentials are valid
-        } catch (Exception e) {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/org/example/newsrecommendationsystem/" + fxmlFile));
+            Scene scene = new Scene(loader.load());
+            Stage stage = (Stage) loginButton.getScene().getWindow();
+            stage.setScene(scene);
+            stage.setTitle(pageTitle);
+        } catch (IOException e) {
             e.printStackTrace();
-            showAlert("Error", "An error occurred while verifying credentials.");
-            return false;
         }
     }
 }
