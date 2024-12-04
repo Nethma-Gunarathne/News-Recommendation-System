@@ -8,22 +8,20 @@ import javafx.stage.Stage;
 import java.io.IOException;
 
 public class HelloApplication extends Application {
-
     @Override
     public void start(Stage primaryStage) {
-        // Initialize the database before using it
-        Database.initDatabase();
         try {
             // Load the Login.fxml as the initial screen
-            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("user/Login.fxml"));
+            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("Login.fxml"));
             Scene scene = new Scene(fxmlLoader.load());
             primaryStage.setScene(scene);
-            primaryStage.setTitle("Login");
+            primaryStage.setTitle("News Recommendation System");
             primaryStage.show();
         } catch (IOException e) {
             e.printStackTrace();
             System.out.println("Error: Could not load the initial FXML file.");
         }
+
     }
 
     public static void main(String[] args) {
