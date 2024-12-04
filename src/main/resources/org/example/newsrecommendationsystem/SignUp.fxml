@@ -10,6 +10,7 @@
 <?import javafx.scene.text.Text?>
 
 <AnchorPane prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.example.newsrecommendationsystem.user.SignUp">
+
     <children>
         <!-- Register Label -->
         <Label layoutX="36.0" layoutY="21.0" text="Register">
@@ -32,12 +33,12 @@
         <Label layoutX="302.0" layoutY="169.0" text="Content Type Preferences" />
         <MenuButton fx:id="contentTypePreferencesMenu" layoutX="301.0" layoutY="191.0" prefWidth="200.0" text="Select Content Preferences" />
 
-        <!-- Sign In Button -->
-        <Button fx:id="signInButton" layoutX="107.0" layoutY="271.0" onAction="#signInButton" style="-fx-cursor: hand;" text="Sign Up" />
+        <!-- SignUp Button -->
+        <Button fx:id="signUpButton" layoutX="107.0" layoutY="271.0" onAction="#signUpButton" style="-fx-cursor: hand;" text="Sign Up" />
 
         <!-- Login Link -->
-        <Text fx:id="loginLink" layoutX="37.0" layoutY="337.0" text="Already have an account? " />
-        <Text layoutX="191.0" layoutY="337.0" onMouseClicked="#loginLink" text="Login" style="-fx-cursor: hand;" underline="true" />
+        <Text layoutX="37.0" layoutY="337.0" text="Already have an account? " />
+        <Text fx:id="loginLink" layoutX="180.0" layoutY="337.0" onMouseClicked="#loginLink" style="-fx-cursor: hand;" text="Login" underline="true" />
 
     </children>
 </AnchorPane>

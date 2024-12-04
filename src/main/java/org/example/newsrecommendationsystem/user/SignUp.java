@@ -1,62 +1,52 @@
 package org.example.newsrecommendationsystem.user;
 
-import com.mongodb.client.MongoCollection;
-import com.mongodb.client.MongoDatabase;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.text.Text;
-import javafx.stage.Stage;
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Parent;
-import javafx.scene.Scene;
-import org.bson.Document;
-import org.example.newsrecommendationsystem.Database;
+import javafx.scene.control.Alert.AlertType;
+import org.example.newsrecommendationsystem.database.dbManager;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Scene;
+import javafx.stage.Stage;
 
 public class SignUp {
-
     @FXML
     private TextField userName;
-
     @FXML
     private TextField email;
-
     @FXML
     private PasswordField password;
-
     @FXML
     private PasswordField confirmPassword;
-
     @FXML
     private MenuButton newsCategoriesMenu;
-
     @FXML
     private MenuButton contentTypePreferencesMenu;
-
     @FXML
-    private Button signInButton;
-
+    private Button signUpButton;
     @FXML
     private Text loginLink;
 
-    private final Pattern emailPattern = Pattern.compile("^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}$");
+    private final dbManager dbManager = new dbManager();
 
     @FXML
     private void initialize() {
         // Initialize CheckMenuItem options for news categories
-        addCheckMenuItems(newsCategoriesMenu, new String[]{
+        addCheckMenuItems(newsCategoriesMenu, new String[] {
                 "Technology", "Health", "Sports", "AI and Machine Learning", "Politics", "Business",
                 "Science", "Environment", "Entertainment", "World News"});
 
         // Initialize CheckMenuItem options for content type preferences
-        addCheckMenuItems(contentTypePreferencesMenu, new String[]{
+        addCheckMenuItems(contentTypePreferencesMenu, new String[] {
                 "Breaking News", "Opinion Pieces", "Analysis/Research", "Editorials", "Local News"});
     }
 
+    // Helper method to add CheckMenuItems to a MenuButton
     private void addCheckMenuItems(MenuButton menuButton, String[] items) {
         for (String item : items) {
             CheckMenuItem checkMenuItem = new CheckMenuItem(item);
@@ -65,7 +55,7 @@ public class SignUp {
     }
 
     @FXML
-    private void signInButton() {
+    private void signUpButton() {
         if (!validateAllFields()) {
             return;
         }
@@ -78,147 +68,137 @@ public class SignUp {
         navigateToPage("Login.fxml", "Login");
     }
 
+    @FXML
+    private void loginLink(MouseEvent event) {
+        navigateToPage("Login.fxml", "Login");
+    }
+
+    // Validate all fields
     private boolean validateAllFields() {
-        // Check for empty fields first
-        if (userName.getText().isEmpty() || email.getText().isEmpty() ||
-                password.getText().isEmpty() || confirmPassword.getText().isEmpty()) {
-            showAlert("Incomplete Fields", "Please fill all the fields.");
+        String userNameInput = userName.getText().trim();
+        String emailInput = email.getText().trim();
+        String passwordInput = password.getText().trim();
+        String confirmPasswordInput = confirmPassword.getText().trim();
+
+        // Username validation
+        if (!validateUserName(userNameInput)) {
+            showAlert(AlertType.ERROR, "Invalid Username", "Username must contain only non-numerical characters.");
             return false;
         }
 
-        if (!userName.getText().matches("[a-zA-Z]+")) {
-            showAlert("Invalid Username", "Username should not contain numbers or special characters.");
+        // Email validation
+        if (!validateEmail(emailInput)) {
+            showAlert(AlertType.ERROR, "Invalid Email", "Please provide a valid email address.");
             return false;
         }
 
-        if (!emailPattern.matcher(email.getText()).matches()) {
-            showAlert("Invalid Email", "Please enter a valid email address.");
+        // Password validation
+        if (!validatePassword(passwordInput)) {
+            showAlert(AlertType.ERROR, "Invalid Password", "Password must be at least 4 characters long.");
             return false;
         }
 
-        if (password.getText().length() < 5) {
-            showAlert("Invalid Password", "Password must be at least 5 characters long.");
+        // Confirm password validation
+        if (!passwordInput.equals(confirmPasswordInput)) {
+            showAlert(AlertType.ERROR, "Password Mismatch", "Passwords do not match.");
             return false;
         }
 
-        if (!password.getText().equals(confirmPassword.getText())) {
-            showAlert("Password Mismatch", "Confirm password must match the password.");
-            return false;
-        }
+        // Get selected preferences
+        List<String> selectedNewsCategories = getSelectedItems(newsCategoriesMenu);
+        List<String> selectedContentPreferences = getSelectedItems(contentTypePreferencesMenu);
 
-        if (getSelectedCheckMenuItemCount(newsCategoriesMenu) < 1) {
-            showAlert("Selection Error", "Please select at least 1 news category.");
-            return false;
-        }
-
-        if (getSelectedCheckMenuItemCount(contentTypePreferencesMenu) < 1) {
-            showAlert("Selection Error", "Please select at least 1 content type preference.");
+        // Validate that at least 2 preferences are selected
+        if (selectedNewsCategories.size() + selectedContentPreferences.size() < 2) {
+            showAlert(AlertType.ERROR, "Insufficient Preferences", "You must select at least 2 preferences.");
             return false;
         }
 
         return true;
     }
 
-    private int getSelectedCheckMenuItemCount(MenuButton menuButton) {
-        int count = 0;
-        for (MenuItem item : menuButton.getItems()) {
-            if (item instanceof CheckMenuItem) {
-                CheckMenuItem checkMenuItem = (CheckMenuItem) item;
-                if (checkMenuItem.isSelected()) {
-                    count++;
-                }
-            }
-        }
-        return count;
-    }
-
+    // Helper method to save user to the database
     private void saveUserToDatabase() {
+        String userNameInput = userName.getText().trim();
+        String emailInput = email.getText().trim();
+        String passwordInput = password.getText().trim();
+
+        List<String> selectedNewsCategories = getSelectedItems(newsCategoriesMenu);
+        List<String> selectedContentPreferences = getSelectedItems(contentTypePreferencesMenu);
+
+        User user = new User(userNameInput, emailInput, passwordInput, selectedNewsCategories, selectedContentPreferences);
+
+        if (dbManager.isUserExists(user.getUserName(), user.getEmail())) {
+            showAlert(AlertType.ERROR, "Duplicate User", "A user with this username or email already exists.");
+            return;
+        }
+
+        if (!dbManager.saveUser(user.toDocument())) {
+            showAlert(AlertType.ERROR, "Database Error", "Failed to save user. Try again.");
+        } else {
+            showAlert(AlertType.INFORMATION, "Success", "User registered successfully!");
+        }
+    }
+
+    // Helper method to get selected items from the MenuButton
+    private List<String> getSelectedItems(MenuButton menuButton) {
+        return menuButton.getItems().stream()
+                .filter(item -> item instanceof CheckMenuItem && ((CheckMenuItem) item).isSelected())
+                .map(MenuItem::getText)
+                .toList();
+    }
+
+    // Validation methods for username, email, and password
+    private boolean validateUserName(String userName) {
+        return userName.matches("^[a-zA-Z]+$");
+    }
+
+    private boolean validateEmail(String email) {
+        String emailRegex = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$";
+        return Pattern.matches(emailRegex, email);
+    }
+
+    private boolean validatePassword(String password) {
+        return password.length() >= 4;
+    }
+
+    private void navigateToPage(String fxmlFile, String pageTitle) {
         try {
-            MongoDatabase database = Database.getDatabase();
-            MongoCollection<Document> usersCollection = database.getCollection("users");
+            System.out.println("Attempting to load FXML: " + fxmlFile);  // Debugging statement
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/org/example/newsrecommendationsystem/" + fxmlFile));
 
-            if (isUserExists(usersCollection, userName.getText(), email.getText())) {
-                showAlert("Duplicate User", "A user with the same username or email already exists.");
-                return;
+            if (loader.getLocation() == null) {
+                System.out.println("Error: FXML file not found - " + fxmlFile);
             }
 
-            Document newUser = new Document("userName", userName.getText())
-                    .append("email", email.getText())
-                    .append("password", password.getText())
-                    .append("newsCategories", getSelectedCheckMenuItems(newsCategoriesMenu))
-                    .append("contentPreferences", getSelectedCheckMenuItems(contentTypePreferencesMenu));
+            Scene scene = new Scene(loader.load());
 
-            usersCollection.insertOne(newUser);
-            System.out.println("User successfully added to the database.");
-        } catch (Exception e) {
+            Stage stage = (Stage) loginLink.getScene().getWindow();
+            stage.setScene(scene);
+            stage.setTitle(pageTitle);
+        } catch (IOException e) {
             e.printStackTrace();
-            showAlert("Database Error", "Failed to save user to the database.");
+            System.out.println("Error loading FXML: " + fxmlFile);
         }
     }
 
-    private List<String> getSelectedCheckMenuItems(MenuButton menuButton) {
-        List<String> selectedItems = new ArrayList<>();
-        for (MenuItem item : menuButton.getItems()) {
-            if (item instanceof CheckMenuItem && ((CheckMenuItem) item).isSelected()) {
-                selectedItems.add(item.getText());
-            }
-        }
-        return selectedItems;
+
+
+    // Show alert message
+    private void showAlert(AlertType alertType, String title, String message) {
+        Alert alert = new Alert(alertType);
+        alert.setTitle(title);
+        alert.setContentText(message);
+        alert.showAndWait();
     }
 
+    // Clear all input fields and selected preferences
     private void clearFields() {
         userName.clear();
         email.clear();
         password.clear();
         confirmPassword.clear();
-
-        for (MenuItem item : newsCategoriesMenu.getItems()) {
-            if (item instanceof CheckMenuItem) {
-                ((CheckMenuItem) item).setSelected(false);
-            }
-        }
-
-        for (MenuItem item : contentTypePreferencesMenu.getItems()) {
-            if (item instanceof CheckMenuItem) {
-                ((CheckMenuItem) item).setSelected(false);
-            }
-        }
-    }
-
-    @FXML
-    private void loginLink() {
-        navigateToPage("Login.fxml", "Login");
-    }
-
-    private void navigateToPage(String fxmlFile, String title) {
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("Login.fxml"));
-            Parent root = loader.load();
-            Stage stage = (Stage) loginLink.getScene().getWindow();
-            stage.setScene(new Scene(root));
-            stage.setTitle(title);
-        } catch (IOException e) {
-            e.printStackTrace();
-            showAlert("Navigation Error", "Could not load the " + title + " page.");
-        }
-    }
-
-    private boolean isUserExists(MongoCollection<Document> usersCollection, String username, String email) {
-        Document existingUser = usersCollection.find(
-                new Document("$or", List.of(
-                        new Document("userName", username),
-                        new Document("email", email)
-                ))
-        ).first();
-
-        return existingUser != null;
-    }
-
-    private void showAlert(String title, String message) {
-        Alert alert = new Alert(Alert.AlertType.ERROR);
-        alert.setTitle(title);
-        alert.setHeaderText(null);
-        alert.setContentText(message);
-        alert.showAndWait();
+        newsCategoriesMenu.getItems().forEach(item -> ((CheckMenuItem) item).setSelected(false));
+        contentTypePreferencesMenu.getItems().forEach(item -> ((CheckMenuItem) item).setSelected(false));
     }
 }
