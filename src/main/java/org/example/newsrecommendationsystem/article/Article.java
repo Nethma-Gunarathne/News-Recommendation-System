@@ -1,52 +1,56 @@
 package org.example.newsrecommendationsystem.article;
 
-public class Article {
-    private String id;
-    private String text;
-    private String category;
-    private String articleNumber;
+import org.bson.types.ObjectId;
 
-    public Article(String id, String text, String category, String articleNumber) {
-        this.id = id;
+public class Article {
+
+    private final ObjectId articleId; // MongoDB's _id
+    private final String text;        // Article content
+    private final String category;    // Category of the article
+    private final String articleNumber; // Article number, treated as title
+
+    // Constructor to initialize the Article object
+    public Article(ObjectId articleId, String text, String category, String articleNumber) {
+        this.articleId = articleId;
         this.text = text;
         this.category = category;
         this.articleNumber = articleNumber;
     }
 
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
+    // Getter methods for the fields
+    public ObjectId getArticleId() {
+        return articleId;
     }
 
     public String getText() {
         return text;
     }
 
-    public void setText(String text) {
-        this.text = text;
-    }
-
     public String getCategory() {
         return category;
-    }
-
-    public void setCategory(String category) {
-        this.category = category;
     }
 
     public String getArticleNumber() {
         return articleNumber;
     }
 
-    public void setArticleNumber(String articleNumber) {
-        this.articleNumber = articleNumber;
+    // Method to get the title of the article
+    public String getTitle() {
+        return articleNumber; // Assuming Article Number is the title
+    }
+
+    // Method to get the content of the article
+    public String getContent() {
+        return text; // Returning the Text field as content
     }
 
     @Override
     public String toString() {
-        return articleNumber + ": " + category;
+        return "Article{" +
+                "articleId=" + articleId +
+                ", text='" + text + '\'' +
+                ", category='" + category + '\'' +
+                ", articleNumber='" + articleNumber + '\'' +
+                '}';
     }
 }
